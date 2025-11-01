@@ -35,7 +35,6 @@ public class EventListener {
     public void onChatReceivedEvent(ClientChatReceivedEvent event) {
         if (!messages_updated) {Messages.updateMessages();messages_updated=true;}
         messageManager.processMessages(messageManager.getMessage(event.getMessage().getUnformattedText()), event);
-        System.out.println(event.getMessage().getUnformattedText());
     }
 
     @SubscribeEvent
