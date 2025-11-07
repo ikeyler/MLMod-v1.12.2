@@ -24,6 +24,9 @@ public class Configuration {
     @Config.LangKey("mlmod.config.category.creative")
     @Config.Comment("mlmod.config.category.creative.tooltip")
     public static Creative CREATIVE = new Creative();
+    @Config.LangKey("mlmod.config.category.chat_formatting")
+    @Config.Comment("mlmod.config.category.chat_formatting.tooltip")
+    public static ChatFormatting CHAT_FORMATTING = new ChatFormatting();
 
     public static class General {
         @Config.LangKey("mlmod.config.option.ignored_players")
@@ -83,6 +86,20 @@ public class Configuration {
         @Config.LangKey("mlmod.config.option.show_world_id")
         @Config.Comment("mlmod.config.option.show_world_id.tooltip")
         public Bool SHOW_WORLD_ID = Bool.FALSE;
+        @Config.LangKey("mlmod.config.option.double_excl_mark_to_cc")
+        @Config.Comment("mlmod.config.option.double_excl_mark_to_cc.tooltip")
+        public Bool DOUBLE_EXCL_MARK_TO_CC = Bool.FALSE;
+    }
+
+    public static class ChatFormatting {
+        @Config.LangKey("mlmod.config.option.chat_formatting")
+        public Bool CHAT_FORMATTING = Bool.FALSE;
+        @Config.LangKey("mlmod.config.option.chat_formatting_cc")
+        @Config.Comment("mlmod.config.option.chat_formatting_cc.tooltip")
+        public String CREATIVE_CHAT = "&3CC &8|";
+        @Config.LangKey("mlmod.config.option.chat_formatting_dc")
+        @Config.Comment("mlmod.config.option.chat_formatting_dc.tooltip")
+        public String DONATE_CHAT = "&2DC &8|";
     }
 
     public enum Bool {

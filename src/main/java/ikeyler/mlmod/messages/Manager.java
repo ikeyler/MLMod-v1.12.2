@@ -28,9 +28,10 @@ import static ikeyler.mlmod.Main.logger;
 public class Manager {
     private final List<Message> messageList = new ArrayList<>();
     private final Minecraft mc = Minecraft.getMinecraft();
-    private final Pattern adPattern = Pattern.compile("/?(ad|ад|id|айди)\\s+(\\S+)");
-    private final String you = new TextComponentTranslation("mlmod.you").getUnformattedText();
+    private final Pattern adPattern = Pattern.compile("/?\\b(ad|ад|id|айди|join)\\s+(\\S+)");
+    private String you = "you";
     private List<String> ignoredPlayers = new ArrayList<>();
+    private boolean init;
 
     public void addMessages(List<Message> messages) {
         messageList.addAll(messages);
@@ -47,12 +48,12 @@ public class Manager {
     }
 
     public void processMessages(Message message, ClientChatReceivedEvent event) {
-        if (message == null) return;
-        if (!message.isActive()) {
-            event.setCanceled(true);
-            return;
+        if (!init && (init=true)) {
+            you = new TextComponentTranslation("mlmod.you").getUnformattedText();
+            updateIgnoredPlayers();
         }
-        if (Messages.AD_MESSAGES.contains(message) && !Configuration.GENERAL.ADS.get()) {
+        if (message == null) return;
+        if (!message.isActive() || (!Configuration.GENERAL.ADS.get() && Messages.AD_MESSAGES.contains(message))) {
             event.setCanceled(true);
             return;
         }
@@ -73,21 +74,36 @@ public class Manager {
 
         if (message == Messages.CREATIVE_CHAT || message == Messages.DONATE_CHAT) {
             boolean hideMessage = false;
+            boolean setMessage = false;
             String[] split = matcher.group(1).split(" ");
             String player = split[split.length-1];
             String msg = trimMessage(matcher.group(2));
             String reply = message == Messages.CREATIVE_CHAT ? "/cc "+player+", " : "/dc "+player+", ";
+            MessageType type = message == Messages.CREATIVE_CHAT ? MessageType.CREATIVE_CHAT : MessageType.DONATE_CHAT;
             if (isPlayerIgnored(player)) {
                 event.setCanceled(true); player = player+" (blocked)"; hideMessage=true;
             }
-            if (message == Messages.CREATIVE_CHAT) messageCollector.addEntry(MessageType.CREATIVE_CHAT, player, msg);
-            else messageCollector.addEntry(MessageType.DONATE_CHAT, player, msg);
+            messageCollector.addEntry(type, player, msg);
+            if (hideMessage) return;
 
-            if (Configuration.GENERAL.CHAT_PLAYER_INTERACT.get() && !hideMessage) {
+            if (isChatFormattingEnabled() && messageComponent.getSiblings().size() > 2) {
+                String formatting = message == Messages.CREATIVE_CHAT ? Configuration.CHAT_FORMATTING.CREATIVE_CHAT : Configuration.CHAT_FORMATTING.DONATE_CHAT;
+                if (formatting != null && !formatting.isEmpty()) {
+                    ITextComponent formattedComponent = new TextComponentString("");
+                    formattedComponent.appendText(TextUtil.replaceWithColorCodes(formatting) + " ");
+                    messageComponent.getSiblings().subList(2, messageComponent.getSiblings().size())
+                            .forEach(formattedComponent::appendSibling);
+                    setMessage = true;
+                    messageComponent = formattedComponent;
+                }
+            }
+
+            if (Configuration.GENERAL.CHAT_PLAYER_INTERACT.get()) {
                 ITextComponent component = messageComponent.createCopy();
-                Style style = messageComponent.getStyle().setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mlmodplayerinteract " + player + ":::" + msg + ":::" + reply));
+                Style style = messageComponent.getStyle()
+                        .setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponentTranslation("mlmod.messages.chat_player_interact.click", player)))
+                        .setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mlmodplayerinteract " + player + ":::" + msg + ":::" + reply));
                 component.setStyle(style);
-
                 Matcher adMatcher = adPattern.matcher(msg.toLowerCase());
                 List<String> adList = new ArrayList<>();
                 while (adMatcher.find()) {String[] spl = adMatcher.group(0).split(" "); adList.add("/ad "+spl[spl.length-1].replace(",", ""));}
@@ -99,8 +115,10 @@ public class Manager {
                     adComponent.setStyle(adStyle);
                     component.appendSibling(adComponent);
                 }
-                event.setMessage(component);
+                setMessage = true;
+                messageComponent = component;
             }
+            if (setMessage) event.setMessage(messageComponent);
             return;
         }
 
@@ -108,16 +126,16 @@ public class Manager {
             boolean hideMessage = false;
             String player = message == Messages.PM ? matcher.group(1) : you;
             String msg = trimMessage(matcher.group(2));
-
+            MessageType type = message == Messages.PM ? MessageType.PRIVATE_MESSAGE : MessageType.PM_REPLY;
+            String data = message == Messages.PM ? msg : matcher.group(1)+" -> "+msg;
             if (isPlayerIgnored(player)) {
                 event.setCanceled(true); player = player+" (blocked)"; hideMessage=true;
             }
-            if (message == Messages.PM) messageCollector.addEntry(MessageType.PRIVATE_MESSAGE, player, msg);
-            else messageCollector.addEntry(MessageType.PM_REPLY, player, matcher.group(1)+" -> "+msg);
+            messageCollector.addEntry(type, player, data);
 
             if (hideMessage) return;
             if (Configuration.GENERAL.PM_NOTIFICATION.get() && !mc.inGameHasFocus) {
-                mc.world.playSound(mc.player, mc.player.getPosition(), new SoundEvent(new ResourceLocation("entity.experience_orb.pickup")), SoundCategory.MASTER, 0.5F, 0.7F);
+                mc.world.playSound(mc.player, mc.player.getPosition(), new SoundEvent(new ResourceLocation(TextUtil.NOTIFICATION_SOUND)), SoundCategory.MASTER, 0.5F, 0.7F);
             }
             return;
         }
@@ -139,5 +157,9 @@ public class Manager {
     private boolean isPlayerIgnored(String player) {
         return ignoredPlayers.contains(player.toLowerCase()) &&
                 !player.equalsIgnoreCase(you);
+    }
+    private boolean isChatFormattingEnabled() {
+        return Configuration.CHAT_FORMATTING.CHAT_FORMATTING.get() &&
+                (!Configuration.CHAT_FORMATTING.CREATIVE_CHAT.isEmpty() || !Configuration.CHAT_FORMATTING.DONATE_CHAT.isEmpty());
     }
 }

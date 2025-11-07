@@ -6,7 +6,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.FileReader;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -31,6 +36,7 @@ public class MessageCollector {
     }
     public void addEntry(MessageType type, String player, String data) {
         if (!Configuration.GENERAL.MESSAGE_COLLECTOR.get()) return;
+        if (!dataFile.exists()) {Main.logger.error("data file doesn't exist"); return;}
         // timestamp type | player (optional): data
         String timestamp = LocalDateTime.now().format(formatter);
         StringBuilder entry = new StringBuilder();

@@ -9,6 +9,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
@@ -22,21 +23,19 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 
 import java.util.*;
-import java.util.List;
-
 import static ikeyler.mlmod.Main.*;
 import static ikeyler.mlmod.util.TextUtil.MOD_PREFIX;
 
 public class EventListener {
     private final Minecraft mc = Minecraft.getMinecraft();
     private boolean messages_updated = false;
-    private final List<String> commands = new ArrayList<>(Arrays.asList("/edit", "/var", "/text", "/num", "/msgs"));
+    private final List<String> commands = new ArrayList<>(
+            Arrays.asList("/edit", "/var", "/text", "/num", "/msgs", "/ignorelist"));
 
     @SubscribeEvent
     public void onChatReceivedEvent(ClientChatReceivedEvent event) {
-        if (!messages_updated) {
+        if (!messages_updated && (messages_updated=true)) {
             Messages.updateMessages();
-            messages_updated=true;
             return;
         }
         messageManager.processMessages(messageManager.getMessage(event.getMessage().getUnformattedText()), event);
@@ -47,6 +46,15 @@ public class EventListener {
         String message = event.getMessage();
         String[] split = message.split(" ");
         String start = split.length > 0 ? split[0] : "";
+
+        if (message.startsWith("!!") && Configuration.CREATIVE.DOUBLE_EXCL_MARK_TO_CC.get()) {
+            String newMessage = message.replaceFirst("!!", "").trim();
+            if (newMessage.isEmpty()) return;
+            event.setCanceled(true);
+            mc.ingameGUI.getChatGUI().addToSentMessages(message);
+            mc.player.sendChatMessage("/cc "+newMessage);
+            return;
+        }
 
         if (commands.contains(start.toLowerCase())) {
             event.setCanceled(true);
@@ -68,7 +76,7 @@ public class EventListener {
                 String prevName = mc.player.getHeldItemMainhand().getDisplayName();
                 Style edit = TextUtil.clickToViewStyle("/edit " + prevName.replace("§", "&"));
                 ItemStack stack = mc.player.getHeldItemMainhand();
-                stack.setStackDisplayName(TextUtil.replaceColors(message.replaceFirst(start, "").trim()));
+                stack.setStackDisplayName(TextUtil.replaceColorCodes(message.replaceFirst(start, "").trim()));
                 mc.playerController.sendSlotPacket(mc.player.getHeldItemMainhand(), 36+mc.player.inventory.currentItem);
                 mc.player.sendMessage(new TextComponentString(MOD_PREFIX).appendSibling(new TextComponentTranslation("mlmod.messages.edit.old_name", prevName)).setStyle(edit));
                 break;
@@ -145,7 +153,7 @@ public class EventListener {
                         break;
                 }
                 if (item != null) {
-                    item.setStackDisplayName(TextUtil.replaceColors(name));
+                    item.setStackDisplayName(TextUtil.replaceColorCodes(name));
                     // не апдейтает инвентарь
                     mc.player.addItemStackToInventory(item);
                 }
@@ -177,6 +185,23 @@ public class EventListener {
                 }
                 break;
 
+            case "/ignorelist":
+                List<String> ignoredPlayers = Arrays.asList(Configuration.GENERAL.IGNORED_PLAYERS);
+                ITextComponent ignoreComponent = new TextComponentString(MOD_PREFIX);
+                ignoreComponent.appendSibling(new TextComponentTranslation("mlmod.messages.ignorelist.ignore_list", ignoredPlayers.size()));
+                ignoreComponent.appendText("\n");
+                for (String pl:ignoredPlayers) {
+                    ignoreComponent.appendText("§8- §7").appendSibling(new TextComponentString(pl)
+                            .setStyle(TextUtil.newStyle()
+                                    .setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mlignore "+pl))
+                                    .setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponentTranslation("mlmod.messages.ignorelist.click_to_remove")))));
+                    ignoreComponent.appendText("\n");
+                }
+                ignoreComponent.appendSibling(new TextComponentTranslation("mlmod.messages.ignorelist.info")
+                        .setStyle(TextUtil.newStyle().setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/mlignore "))));
+                mc.player.sendMessage(ignoreComponent);
+                break;
+
             case "/mlmodtogglemsgcollector":
                 event.setCanceled(true);
                 Configuration.GENERAL.MESSAGE_COLLECTOR = Configuration.Bool.fromBoolean(!Configuration.GENERAL.MESSAGE_COLLECTOR.get());
@@ -186,16 +211,16 @@ public class EventListener {
             case "/mlmodshowmessageads":
                 event.setCanceled(true);
                 if (split.length < 2) return;
-                TextComponentString component = new TextComponentString(MOD_PREFIX);
-                component.appendSibling(new TextComponentTranslation("mlmod.messages.world_list"));
-                component.appendText("\n");
+                TextComponentString adComponent = new TextComponentString(MOD_PREFIX);
+                adComponent.appendSibling(new TextComponentTranslation("mlmod.messages.world_list"));
+                adComponent.appendText("\n");
                 for (String c:message.replaceFirst("/mlmodshowmessageads ", "").split(",")) {
                     TextComponentString ad = new TextComponentString("§8- §7"+c);
                     ad.appendText("\n");
                     ad.setStyle(TextUtil.newStyle().setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, c)));
-                    component.appendSibling(ad);
+                    adComponent.appendSibling(ad);
                 }
-                mc.player.sendMessage(component);
+                mc.player.sendMessage(adComponent);
                 break;
             case "/mlmodcopytext":
                 event.setCanceled(true);
