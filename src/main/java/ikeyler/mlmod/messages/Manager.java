@@ -1,11 +1,9 @@
 package ikeyler.mlmod.messages;
 
 import ikeyler.mlmod.cfg.Configuration;
+import ikeyler.mlmod.util.SoundUtil;
 import ikeyler.mlmod.util.TextUtil;
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvent;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextComponentString;
@@ -31,6 +29,10 @@ public class Manager {
     private final Pattern adPattern = Pattern.compile("/?\\b(ad|ад|id|айди|join)\\s+(\\S+)");
     private String you = "you";
     private List<String> ignoredPlayers = new ArrayList<>();
+    private final List<Message> ccDisabledMessages = Arrays.asList(
+            Messages.CC_DISABLED, Messages.CC_DISABLED2, Messages.CC_DISABLED3,
+            Messages.CC_DISABLED4, Messages.CC_DISABLED5
+    );
     private boolean init;
 
     public void addMessages(List<Message> messages) {
@@ -57,6 +59,15 @@ public class Manager {
             event.setCanceled(true);
             return;
         }
+        if (ccDisabledMessages.contains(message)) {
+            if (message == Messages.CC_DISABLED5) {
+                event.setMessage(new TextComponentTranslation("mlmod.messages.use_excl_mark_to_cc"));
+                return;
+            }
+            event.setCanceled(true);
+            return;
+        }
+
         ITextComponent messageComponent = event.getMessage();
         Matcher matcher = message.getMatcher();
 
@@ -135,7 +146,7 @@ public class Manager {
 
             if (hideMessage) return;
             if (Configuration.GENERAL.PM_NOTIFICATION.get() && !mc.inGameHasFocus) {
-                mc.world.playSound(mc.player, mc.player.getPosition(), new SoundEvent(new ResourceLocation(TextUtil.NOTIFICATION_SOUND)), SoundCategory.MASTER, 0.5F, 0.7F);
+                SoundUtil.playSound(TextUtil.NOTIFICATION_SOUND, 0.5F, 0.7F);
             }
             return;
         }

@@ -68,6 +68,12 @@ public class Messages {
     public static final Message PM = new Message("✉ » (\\S+) -> тебе \\| (.*?)");
     public static final Message PM_REPLY = new Message("✉ » ты -> (\\S+) \\| (.*?)");
 
+    public static final Message CC_DISABLED = new Message(" \\| \\[ОПОВЕЩЕНИЕ\\]");
+    public static final Message CC_DISABLED2 = new Message(" \\| На Sharded отключен глобальный чат\\. Зачем\\?");
+    public static final Message CC_DISABLED3 = new Message(" \\| Вместо него был создан креатив-чат - \\/cc");
+    public static final Message CC_DISABLED4 = new Message(" \\| Хочешь включить и общаться с игроками\\? - \\/cc on");
+    public static final Message CC_DISABLED5 = new Message(" \\| Мешает этот чат\\? - \\/cc off");
+
     // ad messages
     public static final Message AD_DELIMITER = new Message(" ");
     public static final Message AD_DELIMITER2 = new Message(" \\|   ?");
@@ -150,7 +156,8 @@ public class Messages {
 
     public static final List<Message> MESSAGES = new ArrayList<>(
             Arrays.asList(REWARD_STORAGE, WELCOME_TO_MINELAND, DEV_MODE_JOIN, UNREAD_MAIL, UNANSWERED_ASKS, WORLD_INVITE, NEW_VIDEO, PUNISHMENT_BROADCAST,
-                    DONATION, PLAYER_VOTED, STREAM, NEW_ASK, CREATIVE_CHAT, DONATE_CHAT, PM, PM_REPLY)
+                    DONATION, PLAYER_VOTED, STREAM, NEW_ASK, CREATIVE_CHAT, DONATE_CHAT, PM, PM_REPLY,
+                    CC_DISABLED, CC_DISABLED2, CC_DISABLED3, CC_DISABLED4, CC_DISABLED5)
     );
 
     public static final List<Message> AD_MESSAGES = new ArrayList<>(

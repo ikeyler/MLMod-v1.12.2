@@ -3,6 +3,7 @@ package ikeyler.mlmod;
 import ikeyler.mlmod.cfg.Configuration;
 import ikeyler.mlmod.messages.MessageType;
 import ikeyler.mlmod.messages.Messages;
+import ikeyler.mlmod.util.SoundUtil;
 import ikeyler.mlmod.util.TextUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.Item;
@@ -19,6 +20,7 @@ import net.minecraftforge.client.event.ClientChatEvent;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.common.config.ConfigManager;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 
@@ -47,8 +49,8 @@ public class EventListener {
         String[] split = message.split(" ");
         String start = split.length > 0 ? split[0] : "";
 
-        if (message.startsWith("!!") && Configuration.CREATIVE.DOUBLE_EXCL_MARK_TO_CC.get()) {
-            String newMessage = message.replaceFirst("!!", "").trim();
+        if (message.startsWith("!") && Configuration.CREATIVE.EXCL_MARK_TO_CC.get()) {
+            String newMessage = message.replaceFirst("!", "").trim();
             if (newMessage.isEmpty()) return;
             event.setCanceled(true);
             mc.ingameGUI.getChatGUI().addToSentMessages(message);
@@ -93,11 +95,12 @@ public class EventListener {
                     Style copy = TextUtil.newStyle().setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mlmodcopytext "+msg)).setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponentString(msg)));
                     Style report = TextUtil.newStyle().setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/report " + player));
                     Style block = TextUtil.newStyle().setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mlignore " + player));
+                    Style find = TextUtil.newStyle().setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/msgs find " + player));
                     menu.appendText("\n").appendSibling(new TextComponentTranslation("mlmod.messages.reply").setStyle(write)).appendText(" ")
                             .appendSibling(new TextComponentTranslation("mlmod.messages.copy_message").setStyle(copy)).appendText(" ")
                             .appendSibling(new TextComponentTranslation("mlmod.messages.report").setStyle(report)).appendText(" ")
-                            .appendSibling(new TextComponentTranslation("mlmod.messages.block").setStyle(block));
-                    menu.setStyle(write);
+                            .appendSibling(new TextComponentTranslation("mlmod.messages.block").setStyle(block)).appendText(" ")
+                            .appendSibling(new TextComponentTranslation("mlmod.messages.find_messages").setStyle(find));
                     mc.player.sendMessage(new TextComponentString(MOD_PREFIX).appendSibling(menu));
                 }
                 break;
@@ -202,6 +205,58 @@ public class EventListener {
                 mc.player.sendMessage(ignoreComponent);
                 break;
 
+            case "/sound":
+                if (!Configuration.CREATIVE.SOUND_COMMAND.get()) return;
+
+                event.setCanceled(true);
+                mc.ingameGUI.getChatGUI().addToSentMessages(message);
+                if (split.length == 1) {
+                    mc.player.sendMessage(new TextComponentString(MOD_PREFIX).
+                            appendSibling(new TextComponentTranslation("mlmod.messages.sound.usage")).setStyle(
+                                    TextUtil.newStyle().setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponentTranslation("mlmod.messages.sound.usage_info")))
+                            )
+                            .appendText("\n").appendSibling(new TextComponentTranslation("mlmod.messages.sound.search_guide"))
+                    );
+                    return;
+                }
+                else if (split.length > 1 && !split[1].equalsIgnoreCase("find")) {
+                    String sound = split[1].toLowerCase();
+                    if (!SoundUtil.getSoundIds().contains(sound)) {
+                        mc.player.sendMessage(new TextComponentTranslation("mlmod.messages.sound.sounds_not_found"));
+                        return;
+                    }
+                    float pitch = 1;
+                    float volume = 1;
+                    try {
+                        pitch = split.length > 2 ? Float.parseFloat(split[2]) : pitch;
+                        volume = split.length > 3 ? Float.parseFloat(split[3]) : volume;
+                    } catch (Exception ignore) {mc.player.sendMessage(new TextComponentTranslation("mlmod.incorrect_arguments")); return;}
+                    mc.getSoundHandler().stopSounds();
+                    mc.ingameGUI.setOverlayMessage(new TextComponentTranslation("mlmod.messages.sound.playing_sound", sound), true);
+                    SoundUtil.playSound(sound, volume, pitch);
+                    return;
+                }
+
+                String query = message.toLowerCase().replaceFirst("/sound find ", "");
+                List<String> sounds = SoundUtil.findSoundIds(query);
+                if (sounds.isEmpty()) {mc.player.sendMessage(new TextComponentTranslation("mlmod.messages.sound.sounds_not_found")); return;}
+                ITextComponent soundComponent = new TextComponentString(MOD_PREFIX).appendSibling(
+                        new TextComponentTranslation("mlmod.messages.sound.sounds_found", sounds.size()));
+                soundComponent.appendText("\n");
+                boolean switchColor = false;
+                for (int i = 0; i < sounds.size(); i++) {
+                    String sound = sounds.get(i);
+                    String color = switchColor ? "§f" : "§7";
+                    soundComponent.appendSibling(new TextComponentString(color+sound)
+                            .setStyle(TextUtil.newStyle()
+                                    .setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/sound "+sound))
+                                    .setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponentTranslation("mlmod.messages.sound.click_to_play_sound")))));
+                    if (i < sounds.size()-1) {soundComponent.appendText(", ");}
+                    switchColor = !switchColor;
+                }
+                mc.player.sendMessage(soundComponent);
+                break;
+
             case "/mlmodtogglemsgcollector":
                 event.setCanceled(true);
                 Configuration.GENERAL.MESSAGE_COLLECTOR = Configuration.Bool.fromBoolean(!Configuration.GENERAL.MESSAGE_COLLECTOR.get());
@@ -239,6 +294,14 @@ public class EventListener {
         else if (Keybinds.play.isPressed()) mc.player.sendChatMessage("/play");
         else if (Keybinds.build.isPressed()) mc.player.sendChatMessage("/build");
         else if (Keybinds.dev.isPressed()) mc.player.sendChatMessage("/dev");
+    }
+    @SubscribeEvent
+    public void onRightClick(PlayerInteractEvent.RightClickItem event) {
+        if (Configuration.CREATIVE.PLAY_SOUND.get() && event.getEntityPlayer().getName().equals(mc.player.getName())) {
+            if (mc.player.isSneaking() && event.getItemStack().isItemEqual(new ItemStack(Item.getItemById(340)))) {
+                SoundUtil.playSound(TextUtil.removeColors(event.getItemStack().getDisplayName()).trim(), 1, 1);
+            }
+        }
     }
 }
 
