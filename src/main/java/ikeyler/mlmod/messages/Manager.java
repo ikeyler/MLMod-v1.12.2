@@ -1,6 +1,7 @@
 package ikeyler.mlmod.messages;
 
 import ikeyler.mlmod.cfg.Configuration;
+import ikeyler.mlmod.util.ModUtils;
 import ikeyler.mlmod.util.SoundUtil;
 import ikeyler.mlmod.util.TextUtil;
 import net.minecraft.client.Minecraft;
@@ -72,6 +73,12 @@ public class Manager {
         ITextComponent messageComponent = event.getMessage();
         Matcher matcher = message.getMatcher();
 
+        if (message == Messages.DEV_MODE_JOIN) {
+            if (!Configuration.CREATIVE.DEV_MODE_JOIN.get()) event.setCanceled(true);
+            ModUtils.enableDevMode();
+            return;
+        }
+
         if (message == Messages.UNANSWERED_ASKS || message == Messages.UNREAD_MAIL) {
             String cmd = message == Messages.UNANSWERED_ASKS ? "/q" : "/mailgui";
             TextComponentTranslation component = new TextComponentTranslation("mlmod.messages.open_component");
@@ -80,7 +87,7 @@ public class Manager {
                             ClickEvent.Action.RUN_COMMAND,
                             cmd
                     )));
-            event.setMessage(event.getMessage().createCopy().appendText(" ").appendSibling(component));
+            event.setMessage(messageComponent.createCopy().appendText(" ").appendSibling(component));
             return;
         }
 
@@ -155,8 +162,16 @@ public class Manager {
 
             if (hideMessage) return;
             if (Configuration.GENERAL.PM_NOTIFICATION.get() && !mc.inGameHasFocus) {
-                SoundUtil.playSound(TextUtil.NOTIFICATION_SOUND, 0.5F, 0.7F);
+                SoundUtil.playSound(ModUtils.NOTIFICATION_SOUND, 0.5F, 0.7F);
             }
+            return;
+        }
+
+        if (message == Messages.PARTY_CHAT) {
+            String[] split = matcher.group(1).split(" ");
+            String player = split[split.length-1];
+            String msg = trimMessage(matcher.group(2));
+            messageCollector.addEntry(MessageType.PARTY_CHAT, player, msg);
             return;
         }
 

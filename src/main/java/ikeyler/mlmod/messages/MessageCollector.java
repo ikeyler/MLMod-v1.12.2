@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import static ikeyler.mlmod.util.TextUtil.MOD_PREFIX;
+import static ikeyler.mlmod.util.ModUtils.MOD_PREFIX;
 
 public class MessageCollector {
     private final File dataFile = new File("mlmodData.txt");

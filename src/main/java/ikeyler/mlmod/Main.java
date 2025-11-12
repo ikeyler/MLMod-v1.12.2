@@ -20,6 +20,7 @@ public class Main
     public void preInit(FMLPreInitializationEvent event)
     {
         MinecraftForge.EVENT_BUS.register(new EventListener());
+        MinecraftForge.EVENT_BUS.register(new PacketHandler());
         messageManager.addMessages(Messages.MESSAGES);
         messageManager.addMessages(Messages.AD_MESSAGES);
         Keybinds.register();

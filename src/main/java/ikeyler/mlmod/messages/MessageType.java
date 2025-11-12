@@ -3,6 +3,7 @@ package ikeyler.mlmod.messages;
 public enum MessageType {
     CREATIVE_CHAT("CC"),
     DONATE_CHAT("DC"),
+    PARTY_CHAT("PC"),
     PRIVATE_MESSAGE("LS"),
     PM_REPLY("REPLY");
 

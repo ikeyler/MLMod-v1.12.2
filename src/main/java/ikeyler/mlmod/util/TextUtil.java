@@ -14,8 +14,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public class TextUtil {
-    public static final String MOD_PREFIX = "§8» §f";
-    public static final String NOTIFICATION_SOUND = "entity.experience_orb.pickup";
     public static final List<String> colors = new ArrayList<>(
             Arrays.asList("§0", "§1", "§2", "§3", "§4", "§5", "§6", "§7", "§8", "§9", "§c", "§e", "§b", "§a", "§d", "§f", "§l", "§r", "§o", "§k", "§n", "§m", "§r")
     );

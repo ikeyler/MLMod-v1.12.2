@@ -4,6 +4,7 @@ import ikeyler.mlmod.cfg.Configuration;
 import ikeyler.mlmod.messages.MessageType;
 import ikeyler.mlmod.messages.Messages;
 import ikeyler.mlmod.util.ItemUtil;
+import ikeyler.mlmod.util.ModUtils;
 import ikeyler.mlmod.util.SoundUtil;
 import ikeyler.mlmod.util.TextUtil;
 import net.minecraft.client.Minecraft;
@@ -23,24 +24,29 @@ import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 
-import java.util.*;
-import static ikeyler.mlmod.Main.*;
-import static ikeyler.mlmod.util.TextUtil.MOD_PREFIX;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static ikeyler.mlmod.Main.messageManager;
+import static ikeyler.mlmod.Main.messageCollector;
+import static ikeyler.mlmod.Main.logger;
+import static ikeyler.mlmod.util.ModUtils.MOD_PREFIX;
 
 public class EventListener {
     private final Minecraft mc = Minecraft.getMinecraft();
-    private boolean messages_updated = false;
+    private boolean messagesUpdated = false;
     private final List<String> commands = new ArrayList<>(
-            Arrays.asList("/edit", "/var", "/text", "/num", "/msgs", "/ignorelist", "/head"));
+            Arrays.asList("/edit", "/var", "/text", "/num", "/msgs", "/ignorelist", "/head", "/nightmode"));
 
     @SubscribeEvent
     public void onChatReceivedEvent(ClientChatReceivedEvent event) {
-        if (!messages_updated && (messages_updated=true)) {
+        if (!messagesUpdated && (messagesUpdated=true)) {
             Messages.updateMessages();
-            return;
         }
         messageManager.processMessages(messageManager.getMessage(event.getMessage().getUnformattedText()), event);
     }
@@ -276,6 +282,10 @@ public class EventListener {
                 } catch (Exception e) {mc.player.sendMessage(new TextComponentTranslation("mlmod.command_error")); logger.error(e);}
                 break;
 
+            case "/nightmode":
+                ModUtils.nightModeCommand();
+                break;
+
             case "/mlmodtogglemsgcollector":
                 event.setCanceled(true);
                 Configuration.GENERAL.MESSAGE_COLLECTOR = Configuration.Bool.fromBoolean(!Configuration.GENERAL.MESSAGE_COLLECTOR.get());
@@ -313,6 +323,7 @@ public class EventListener {
         else if (Keybinds.play.isPressed()) mc.player.sendChatMessage("/play");
         else if (Keybinds.build.isPressed()) mc.player.sendChatMessage("/build");
         else if (Keybinds.dev.isPressed()) mc.player.sendChatMessage("/dev");
+        else if (Keybinds.nightmode.isPressed()) ModUtils.nightModeCommand();
     }
     @SubscribeEvent
     public void onRightClick(PlayerInteractEvent.RightClickItem event) {
@@ -321,6 +332,10 @@ public class EventListener {
                 SoundUtil.playSound(TextUtil.removeColors(event.getItemStack().getDisplayName()).trim(), 1, 1);
             }
         }
+    }
+    @SubscribeEvent
+    public void onWorldChange(WorldEvent.Load event) {
+        ModUtils.disableDevMode();
     }
 }
 

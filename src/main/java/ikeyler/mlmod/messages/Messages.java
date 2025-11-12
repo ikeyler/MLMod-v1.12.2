@@ -65,6 +65,7 @@ public class Messages {
     public static final Message NEW_ASK = new Message("Вопросы » Вопрос от (.*?)\\. Сервер: (.*?)\\.");
     public static final Message CREATIVE_CHAT = new Message("Креатив-чат » (.*?): (.*?)");
     public static final Message DONATE_CHAT = new Message("Донат-чат » (.*?): (.*?)");
+    public static final Message PARTY_CHAT = new Message("Party (.*?) » ?(.*?)");
     public static final Message PM = new Message("✉ » (\\S+) -> тебе \\| (.*?)");
     public static final Message PM_REPLY = new Message("✉ » ты -> (\\S+) \\| (.*?)");
 
@@ -156,7 +157,7 @@ public class Messages {
 
     public static final List<Message> MESSAGES = new ArrayList<>(
             Arrays.asList(REWARD_STORAGE, WELCOME_TO_MINELAND, DEV_MODE_JOIN, UNREAD_MAIL, UNANSWERED_ASKS, WORLD_INVITE, NEW_VIDEO, PUNISHMENT_BROADCAST,
-                    DONATION, PLAYER_VOTED, STREAM, NEW_ASK, CREATIVE_CHAT, DONATE_CHAT, PM, PM_REPLY,
+                    DONATION, PLAYER_VOTED, STREAM, NEW_ASK, CREATIVE_CHAT, DONATE_CHAT, PM, PM_REPLY, PARTY_CHAT,
                     CC_DISABLED, CC_DISABLED2, CC_DISABLED3, CC_DISABLED4, CC_DISABLED5)
     );
 
@@ -182,7 +183,6 @@ public class Messages {
     public static void updateMessages() {
         REWARD_STORAGE.setActive(Configuration.GENERAL_MESSAGES.REWARD_STORAGE.get());
         WELCOME_TO_MINELAND.setActive(Configuration.GENERAL_MESSAGES.WELCOME_TO_MINELAND.get());
-        DEV_MODE_JOIN.setActive(Configuration.CREATIVE.DEV_MODE_JOIN.get());
         UNREAD_MAIL.setActive(Configuration.GENERAL_MESSAGES.UNREAD_MAIL.get());
         UNANSWERED_ASKS.setActive(Configuration.GENERAL_MESSAGES.UNANSWERED_ASKS.get());
         WORLD_INVITE.setActive(Configuration.CREATIVE.WORLD_INVITE.get());

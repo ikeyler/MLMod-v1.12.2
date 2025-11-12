@@ -50,7 +50,8 @@ mlmod.config.option.play_sound.tooltip=§fShift+ПКМ, чтобы проигр�
 mlmod.config.option.sound_command=Улучшенная команда §f/sound
 mlmod.config.option.sound_command.tooltip=§fПозволяет искать и проигрывать звуки независимо от /dev
 mlmod.config.option.hide_translate=Скрывать §3[Перевести] §7в §3CC §7и §2DC
-mlmod.config.option.hide_translate.tooltip=Скрывает §3[Перевести] §7в §3CC §7и §2DC
+mlmod.config.option.hide_translate.tooltip=§fСкрывает §3[Перевести] §7в §3CC §7и §2DC
+mlmod.config.option.dev_night_mode=§aНочной режим в /dev
 mlmod.messages.edit.lmb_to_view_text=§aЛКМ§7, чтобы вывести текст в чат
 mlmod.messages.edit.old_name=Старое название: §7[%s§7]
 mlmod.messages.creative_mode_needed=§cВы должны быть в режиме креатива для этого
@@ -80,7 +81,7 @@ mlmod.messages.itemeditor.edit_lore=Изменить описание
 mlmod.messages.itemeditor.enchant=Зачаровать
 mlmod.messages.collector.total=Всего записано §7%s сообщений
 mlmod.messages.collector.info=Сообщения находятся в файле '§6.minecraft\mlmodData.txt§f'. §aНажмите, чтобы открыть
-mlmod.messages.collector.search_guide=§fИспользуйте §7/msgs find §3<текст (опционально)> <dc/cc/ls/reply> §fдля поиска последних §350 сообщений §fпо содержимому или нику
+mlmod.messages.collector.search_guide=§fИспользуйте §7/msgs find §3<текст (опционально)> <dc/cc/pc/ls/reply> §fдля поиска последних §350 сообщений §fпо содержимому или нику
 mlmod.messages.collector.search_found=Найдено §7%s §fсообщений
 mlmod.messages.collector.search_not_found=§cСообщения не найдены
 mlmod.messages.collector.state_enabled=Запись сообщений §aвключена§f. Нажмите, чтобы §cотключить
@@ -101,3 +102,5 @@ mlmod.messages.sound.click_to_play_sound=§aЛКМ§7, чтобы проигра
 mlmod.messages.sound.playing_sound=Воспроизведение звука %s
 mlmod.messages.head.usage=Используйте §7/head §3<никнейм> §fдля выдачи головы игрока
 mlmod.messages.head.head_given=Выдана голова игрока %s §8(откройте инвентарь для обновления)
+mlmod.messages.nightmode.enabled=Ночной режим /dev §aвключен
+mlmod.messages.nightmode.enable_in_config=§cВключите настройку "Ночной режим в /dev" для активации ночного режима

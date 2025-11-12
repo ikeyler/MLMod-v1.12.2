@@ -3,6 +3,7 @@ package ikeyler.mlmod.cfg;
 import ikeyler.mlmod.Main;
 import ikeyler.mlmod.Reference;
 import ikeyler.mlmod.messages.Messages;
+import ikeyler.mlmod.util.ModUtils;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.common.config.ConfigManager;
@@ -99,6 +100,8 @@ public class Configuration {
         @Config.LangKey("mlmod.config.option.sound_command")
         @Config.Comment("mlmod.config.option.sound_command.tooltip")
         public Bool SOUND_COMMAND = Bool.FALSE;
+        @Config.LangKey("mlmod.config.option.dev_night_mode")
+        public Bool DEV_NIGHT_MODE = Bool.FALSE;
     }
 
     public static class ChatFormatting {
@@ -139,6 +142,7 @@ public class Configuration {
             ConfigManager.sync(Reference.MOD_ID, Config.Type.INSTANCE);
             Messages.updateMessages();
             Main.messageManager.updateIgnoredPlayers();
+            if (!CREATIVE.DEV_NIGHT_MODE.get()) ModUtils.disableDevMode();
             Main.logger.info("config updated");
         }
     }
